@@ -21,8 +21,19 @@ fun resizeImage(inputPath: String, outputPath: String, newWidth: Int, newHeight:
             return
         }
 
-        val originalImage = ImageIO.read(inputFile)
-        val resizedImage = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB)
+        val originalImage = ImageIO.read(inputFile).let {
+            when (it.type) {
+                BufferedImage.TYPE_BYTE_GRAY -> {
+                    val tempImage = BufferedImage(it.width, it.height, BufferedImage.TYPE_3BYTE_BGR)
+                    tempImage.graphics.drawImage(it, 0, 0, null)
+                    tempImage
+                }
+
+                else -> it
+            }
+        }
+
+        val resizedImage = BufferedImage(newWidth, newHeight, originalImage.type)
 
         val g2d: Graphics2D = resizedImage.createGraphics()
         g2d.drawImage(originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH), 0, 0, null)
